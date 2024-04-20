@@ -1,19 +1,62 @@
-const wordDisplay = document.querySelector(".word-display");
+const hangmanImage = document.querySelector(".hangman-box img");
 
-let  currentword
+const wordDisplay = document.querySelector(".word-display");
+const guessesText = document.querySelector(".guesses-text b");
+const gamemodel = document.querySelector(".game-modal")
+const playAgainBtn = document.querySelector(".play-again")
+const keyboardDiv = document.querySelector(".keyboard")
+
+
+
+let  currentword,correctLetters =[], wrongGuessCount;
+const maxGuess = 6;
+const resetGame=()=>{
+    correctLetters =[], wrongGuessCount=0;
+    hangmanImage.src = `images/hangman-${wrongGuessCount}.svg`
+
+guessesText.innerHTML = `${wrongGuessCount}/ ${maxGuess}`
+keyboardDiv.querySelectorAll("button").forEach(btn=>btn.disabled = false);
+
+    wordDisplay.innerHTML = currentword.split("").map(()=>`<li class="letter  "></li>`).join("") 
+    gamemodel.classList.remove("show")
+
+}
 const getRandom=()=>{
     const {word,hint} = wordList[Math.floor(Math.random() * wordList.length)];
     currentword = word
     console.log(word)   
     document.querySelector(".hint-text b").innerText = hint;
-    wordDisplay.innerHTML = word.split("").map(()=>`<li class="letter  "></li>`).join("") 
+    resetGame();
 }
+const gameOver = (isvictory)=>{
+    setTimeout(() => {
+        const modalText = isvictory ? "you founded the word":"the correct word was:";
+        gamemodel.querySelector("img").src = `images/${isvictory?'victory':'lost' }.gif`;
+        gamemodel.querySelector("h4").innerText = `${isvictory?'Congrats':'Game Over!' }`;
+        gamemodel.querySelector("p").innerHTML = `${modalText } <b>${currentword}</b>`;
+
+        gamemodel.classList.add("show")
+    }, 300);
+}
+
 const hangmangame=(a1,b1)=>{
 if(currentword.includes(b1)){
-    console.log(b1,"correct word")
+    [...currentword].forEach((letter,index)=>{
+    if(letter === b1){
+        correctLetters.push(letter)
+        wordDisplay.querySelectorAll("li")[index].innerHTML = letter;
+        wordDisplay.querySelectorAll("li")[index].classList.add("guessed");
+
+    }
+    })
 }else{
-    console.log(b1,"not correct word ")
+    wrongGuessCount++;
+    hangmanImage.src = `images/hangman-${wrongGuessCount}.svg`
 }
+a1.disabled = true
+guessesText.innerHTML = `${wrongGuessCount}/ ${maxGuess}`
+if(wrongGuessCount === maxGuess) return gameOver(false)
+if(correctLetters.length === currentword.length) return gameOver(true)
 }
 
 for (let index = 97; index <= 122; index++) {
@@ -24,6 +67,7 @@ for (let index = 97; index <= 122; index++) {
 
 
     }
+    playAgainBtn.addEventListener("click",getRandom)
 
 
     getRandom()
